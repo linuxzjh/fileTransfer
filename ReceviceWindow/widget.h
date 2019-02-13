@@ -3,8 +3,6 @@
 
 #include <QWidget>
 
-#define PORT 60000
-
 #include "recevicer.h"
 
 namespace Ui {

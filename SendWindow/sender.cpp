@@ -3,7 +3,7 @@
 #include <QFile>
 #include <QDataStream>
 
-#define READ_BLOCK_SIZE 4*1024
+#define READ_BLOCK_SIZE (qint64)(4 * 1024 * 1024)
 
 Sender::Sender(qintptr socketDesc, QObject *parent)
     : QObject(parent)
@@ -33,7 +33,10 @@ void Sender::startTransfer()
     QByteArray data;
     QDataStream out(&data, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_9);
-    out << qint64(0) << qint64(0) << _pFile->fileName();
+
+    QString fileName = _pFile->fileName();
+    fileName = fileName.right(fileName.size()-fileName.lastIndexOf('/') - 1);
+    out << qint64(0) << qint64(0) << fileName;
     _totalSize += data.size();
     out.device()->seek(0);
     out << qint64(_totalSize) << qint64((data.size() - sizeof(qint64) * 2));
@@ -48,7 +51,7 @@ void Sender::updateProgress(qint64 numBytes)
     if (_bytesToWrite > 0)
     {
         QByteArray data;
-        data = _pFile->read(qMin((int)_bytesToWrite, READ_BLOCK_SIZE));
+        data = _pFile->read(qMin(_bytesToWrite, READ_BLOCK_SIZE));
         _bytesToWrite -= _pTcpSocket->write(data);
     }
     else
@@ -65,6 +68,8 @@ void Sender::updateProgress(qint64 numBytes)
         }
         _pTcpSocket->close();
     }
+    qDebug() << "已发送大小: " << _bytesWritten / 1024 << "KB\n"
+             << "剩余大小: " << _bytesToWrite / 1024 << "KB\n";
 }
 
 void Sender::displayError(QAbstractSocket::SocketError)

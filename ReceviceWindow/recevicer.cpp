@@ -26,6 +26,7 @@ void Recevicer::connectToHost(const QString &hostName, quint16 port)
 void Recevicer::connectToHost(const QHostAddress &address, quint16 port)
 {
     resetData();
+    tcpSocket->close();
     tcpSocket->connectToHost(address, port);
     emit sendLog(QString("connect host %1, port %2.").arg(address.toString()).arg(QString::number(port)));
 }
@@ -87,6 +88,6 @@ void Recevicer::resetData()
     bytesReceived = 0;
     totalBytes = 0;
     fileNameSize = 0;
-     emit sendTotalSize(100);
+    emit sendTotalSize(100);
     emit sendCurReceivedDataSize(0);
 }

@@ -14,7 +14,10 @@ class Widget : public QWidget
 public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
-
+public slots:
+    void onSelectFileClicked(bool);
+    void onSendFileClicked(bool);
+    void onStartListen(bool);
 private:
     Ui::Widget *ui;
 };

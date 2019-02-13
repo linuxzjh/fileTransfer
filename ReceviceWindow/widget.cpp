@@ -13,6 +13,9 @@ Widget::Widget(QWidget *parent) :
     connect(recevicer, SIGNAL(sendLog(QString)), this, SLOT(onSendLog(QString)));
     connect(recevicer, SIGNAL(sendTotalSize(qint64)), this, SLOT(onSendTotalSize(qint64)));
     connect(recevicer, SIGNAL(sendCurReceivedDataSize(qint64)), this, SLOT(onSendCurReceivedDataSize(qint64)));
+
+    QValidator *validator = new QIntValidator(0, 65535, this);
+    ui->lineEdit_port->setValidator(validator);
 }
 
 Widget::~Widget()
@@ -22,7 +25,11 @@ Widget::~Widget()
 
 void Widget::onConnectBtnClk()
 {
-    recevicer->connectToHost(QHostAddress::LocalHost, PORT);
+    QString ip = ui->lineEdit_ip->text();
+    quint64 port = ui->lineEdit_port->text().toInt();
+    QHostAddress ipAddress(ip);
+    if (! ipAddress.isNull() && (0 != port))
+    recevicer->connectToHost(ipAddress, port);
 }
 
 void Widget::onSendLog(QString text)
@@ -32,10 +39,13 @@ void Widget::onSendLog(QString text)
 
 void Widget::onSendTotalSize(qint64 totalSize)
 {
-    ui->progressBar->setMaximum(totalSize);
+    ui->plainTextEdit->appendPlainText(QString("total size: %1 KB").arg(totalSize / 1024));
+    ui->progressBar->setMaximum(totalSize / 1024);
 }
 
 void Widget::onSendCurReceivedDataSize(qint64 receivedSize)
 {
-    ui->progressBar->setValue(receivedSize);
+    qint64 recvData = receivedSize / 1024;
+    ui->plainTextEdit->appendPlainText(QString("%1 KB").arg(QString::number(recvData)));
+    ui->progressBar->setValue(recvData);
 }
